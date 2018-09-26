@@ -1,12 +1,11 @@
 package markov
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/abrisene/gocausal/distribution"
 	"github.com/abrisene/gocausal/random"
-	. "github.com/logrusorgru/aurora"
+	// . "github.com/logrusorgru/aurora"
 )
 
 type Model struct {
@@ -25,7 +24,7 @@ type Config struct {
 }
 
 type gram struct {
-	Id        string
+	ID        string
 	Last      distribution.Distribution
 	Next      distribution.Distribution
 	Order     int
@@ -86,6 +85,10 @@ func (m *Model) AddSequence(sequence []string) *Model {
 			nextPos := pos + order
 			lastPos := pos - 1
 
+			if nextPos > len(seq)-1 {
+				break
+			}
+
 			// Find the previous and next states
 			var lastState, nextState string
 			if lastPos >= 0 {
@@ -95,11 +98,12 @@ func (m *Model) AddSequence(sequence []string) *Model {
 				nextState = seq[nextPos]
 			}
 
+			// fmt.Println(order, seq, pos, nextPos, len(seq))
 			// Get the gram sequence and id
 			gramSeq := seq[pos:nextPos]
 			gramID := m.getGramID(gramSeq)
 
-			fmt.Println(Red(lastState), Green(gramID), Cyan(nextState))
+			// fmt.Println(Red(lastState), Green(gramID), Cyan(nextState))
 
 			// Add the gram & edge
 			m.addEdge(gramID, lastState, nextState, order)
@@ -119,7 +123,7 @@ func (m *Model) addEdge(id string, last string, next string, order int) *gram {
 	g := m.grams[id]
 	if g == nil {
 		g = &gram{
-			Id:    id,
+			ID:    id,
 			Last:  *distribution.New(make(map[string]float64), m.generator),
 			Next:  *distribution.New(make(map[string]float64), m.generator),
 			Order: order,
@@ -159,10 +163,6 @@ func (m *Model) Last(gramSeq []string, mask []string) string {
 	return pick
 }
 
-/*func (m *Model) addState(state string) *Model {
-	return m
-} */
-
 func (m *Model) Generate(start []string, order int, min int, max int, strict bool) []string {
 	sequence := append([]string{m.config.startDelimiter}, start...)
 	currentOrder := len(sequence)
@@ -185,10 +185,15 @@ func (m *Model) Generate(start []string, order int, min int, max int, strict boo
 			for o := currentOrder; o > 0; o-- {
 				gramSeq := sequence[len(sequence)-o : len(sequence)]
 				gram = m.getGram(gramSeq)
+				// fmt.Println(gram != nil, i < min, gram.ID, gram.Order, gram.Next.GetProbability(m.config.endDelimiter))
 				if gram != nil {
-					break
+					if i > min || gram.Next.GetProbability(m.config.endDelimiter) < 1 {
+						break
+					}
 				}
 			}
+
+			// fmt.Println(gram.ID, gram.Order)
 
 			// Add our next state to the sequence
 			nextState = gram.Next.Pick(mask)
@@ -202,7 +207,7 @@ func (m *Model) Generate(start []string, order int, min int, max int, strict boo
 			// Adjust the order if dynamic
 			if !strict {
 				if currentOrder < order {
-					order++
+					currentOrder++
 				} else if currentOrder == order && order > 1 {
 					currentOrder--
 				}
@@ -214,5 +219,5 @@ func (m *Model) Generate(start []string, order int, min int, max int, strict boo
 			break
 		}
 	}
-	return sequence
+	return sequence[1 : len(sequence)-1]
 }

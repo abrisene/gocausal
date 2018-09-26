@@ -28,6 +28,10 @@ func (d *Distribution) SetGenerator(generator *random.Random) *Distribution {
 	return d
 }
 
+func (d *Distribution) GetProbability(key string) float64 {
+	return d.distributionNrm[key]
+}
+
 func (d *Distribution) Regenerate() *Distribution {
 	d.keys = sortKeys(d.distribution)
 	d.distributionNrm = normalize.NormalizeMap(d.distribution)
