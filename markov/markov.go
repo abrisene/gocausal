@@ -166,9 +166,9 @@ func (m *Model) Last(gramSeq []string, mask []string) string {
 func (m *Model) Generate(start []string, order int, min int, max int, strict bool) []string {
 	sequence := append([]string{m.config.startDelimiter}, start...)
 	currentOrder := len(sequence)
-	if strict {
-		currentOrder = order
-	}
+	// if strict {
+	// 	currentOrder = order
+	// }
 
 	var nextState string
 
@@ -185,8 +185,10 @@ func (m *Model) Generate(start []string, order int, min int, max int, strict boo
 			for o := currentOrder; o > 0; o-- {
 				gramSeq := sequence[len(sequence)-o : len(sequence)]
 				gram = m.getGram(gramSeq)
-				// fmt.Println(gram != nil, i < min, gram.ID, gram.Order, gram.Next.GetProbability(m.config.endDelimiter))
+				// fmt.Println(gram != nil, i < min, gram.ID, gram.Order, currentOrder, order, gram.Next.GetProbability(m.config.endDelimiter))
 				if gram != nil {
+					// fmt.Println(gram.ID, gram.Order, "/", order)
+					// fmt.Println(gram != nil, i < min, gram.ID, gram.Order, currentOrder, order, gram.Next.GetProbability(m.config.endDelimiter))
 					if i > min || gram.Next.GetProbability(m.config.endDelimiter) < 1 {
 						break
 					}
@@ -205,12 +207,10 @@ func (m *Model) Generate(start []string, order int, min int, max int, strict boo
 			}
 
 			// Adjust the order if dynamic
-			if !strict {
-				if currentOrder < order {
-					currentOrder++
-				} else if currentOrder == order && order > 1 {
-					currentOrder--
-				}
+			if currentOrder < order {
+				currentOrder++
+			} else if currentOrder == order && order > 1 && !strict {
+				currentOrder--
 			}
 		} else {
 			// Set final state to end delimiter and break
