@@ -59,28 +59,3 @@ func sortKeys(collection map[string]float64) []string {
 	sort.Strings(keys)
 	return keys
 }
-
-// MAIN =====================
-/* func main() {
-	fmt.Println("\n====\n")
-	r := random.New(1, 0)
-	d := map[string]float64{
-		"a": 5,
-		"b": 2,
-		"c": 8,
-		"d": 8,
-		"e": 1,
-	}
-	w := New(d, r)
-	w.Add("ab", float64(-12))
-	w.Add("b", float64(8))
-	fmt.Println(w)
-	fmt.Println("\n")
-	// fmt.Println(r.GetSeed())
-	fmt.Println("\n")
-	for i := 0; i < 5; i++ {
-		fmt.Println(w.Pick([]string{}))
-	}
-	fmt.Println("\n====\n")
-}
-*/
